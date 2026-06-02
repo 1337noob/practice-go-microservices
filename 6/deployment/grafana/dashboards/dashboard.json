@@ -1,0 +1,55 @@
+{
+  "title" : "User Service",
+  "id": 1,
+  "schemaVersion" : 39,
+  "version": 2,
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "5s",
+  "time": { "from": "now-5m", "to": "now" },
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(grpc_requests_total[1m])",
+          "legendFormat": "{{method}}"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(grpc_requests_total{code!=\"OK\"}[1m])",
+          "legendFormat": "{{method}}"
+        }
+      ]
+    },
+    {
+      "title": "Request Duration (avg)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "rate(grpc_request_duration_seconds_sum[1m]) / rate(grpc_request_duration_seconds_count[1m])",
+          "legendFormat": "{{method}}"
+        }
+      ]
+    },
+    {
+      "title": "Request In Flight",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+      "targets": [
+        {
+          "expr": "grpc_requests_in_flight"
+        }
+      ]
+    }
+  ]
+}
