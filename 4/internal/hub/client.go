@@ -48,13 +48,8 @@ func (c *Client) ReadPump() {
 			}
 			break
 		}
-		client, ok := c.Hub.Clients[c.Name]
-		if !ok {
-			log.Println("client not found", c.Name)
-			continue
-		}
 
-		parsedMessage := parseMessage(message, client.Name)
+		parsedMessage := parseMessage(message, c.Name)
 		switch parsedMessage.Type {
 		case MessageTypeWhisper:
 			c.Hub.Whisper <- parsedMessage
@@ -65,20 +60,19 @@ func (c *Client) ReadPump() {
 }
 
 func parseMessage(message []byte, from string) *Message {
-	if strings.HasPrefix(string(message), "/w") {
-		parts := strings.SplitN(string(message), " ", 3)
-		return &Message{
-			Type: MessageTypeWhisper,
-			From: from,
-			Text: parts[2],
-			To:   parts[1],
+	text := string(message)
+	if strings.HasPrefix(text, "/w ") {
+		parts := strings.SplitN(text, " ", 3)
+		if len(parts) < 3 || parts[1] == "" || parts[2] == "" {
+			return &Message{Type: MessageTypeChat, From: from, Text: text}
 		}
+		return &Message{Type: MessageTypeWhisper, From: from, To: parts[1], Text: parts[2]}
 	}
 
 	return &Message{
 		Type: MessageTypeChat,
 		From: from,
-		Text: string(message),
+		Text: text,
 	}
 }
 

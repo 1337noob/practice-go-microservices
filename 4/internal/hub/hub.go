@@ -24,6 +24,9 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			if existing, ok := h.Clients[client.Name]; ok {
+				close(existing.Send)
+			}
 			h.Clients[client.Name] = client
 			msg := &Message{
 				From: client.Name,
@@ -32,7 +35,7 @@ func (h *Hub) Run() {
 			}
 			h.Broadcast <- msg
 		case client := <-h.Unregister:
-			if _, ok := h.Clients[client.Name]; ok {
+			if existing, ok := h.Clients[client.Name]; ok && existing == client {
 				delete(h.Clients, client.Name)
 				close(client.Send)
 				msg := &Message{
@@ -57,7 +60,11 @@ func (h *Hub) Run() {
 				log.Println("No to", message.To)
 				continue
 			}
-			to.Send <- message
+			select {
+			case to.Send <- message:
+			default:
+				log.Println("Buffer is full, message dropped")
+			}
 		}
 	}
 }
