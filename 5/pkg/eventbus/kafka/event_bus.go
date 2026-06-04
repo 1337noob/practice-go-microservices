@@ -101,6 +101,16 @@ func (b *KafkaEventBus) StartConsumerGroup(ctx context.Context, brokers []string
 	}
 }
 
+func (b *KafkaEventBus) Close() error {
+	err := b.producer.Close()
+	if err != nil {
+		return err
+	}
+
+	log.Println("Producer closed")
+	return nil
+}
+
 type consumerGroupHandler struct {
 	bus *KafkaEventBus
 }

@@ -8,6 +8,9 @@ import (
 	"main/services/user/internal/infrastructure/repository"
 	"main/services/user/internal/usecase"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -33,8 +36,25 @@ func main() {
 	proto.RegisterUserServiceServer(gs, srv)
 	reflection.Register(gs)
 
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+		<-signals
+		log.Println("Shutting down gracefully")
+		gs.GracefulStop()
+		log.Println("gRPC server stopped")
+	}()
+
 	log.Println("Starting gRPC server on :50051")
 	if err := gs.Serve(lis); err != nil {
 		log.Fatal(err)
 	}
+
+	log.Println("Shutting down event bus")
+	err = bus.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("User service stopped gracefully")
 }
