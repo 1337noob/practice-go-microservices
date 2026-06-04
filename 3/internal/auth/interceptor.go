@@ -10,6 +10,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type ctxKey string
+
+const usernameKey ctxKey = "username"
+
 type AuthInterceptor struct {
 	manager       *Manager
 	PublicMethods map[string]bool
@@ -52,7 +56,7 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 			return nil, status.Error(codes.Unauthenticated, err.Error())
 		}
 
-		ctx = context.WithValue(ctx, "username", claims.Username)
+		ctx = context.WithValue(ctx, usernameKey, claims.Username)
 
 		return handler(ctx, req)
 	}
