@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"main/pkg/eventbus"
 	"main/pkg/eventbus/contracts"
@@ -149,7 +150,7 @@ func (h *consumerGroupHandler) unmarshalEvent(eventType eventbus.EventType, e []
 		var event contracts.UserCreated
 		err := json.Unmarshal(e, &event)
 		if err != nil {
-			log.Println("Error unmarshaling event: ", err)
+			return nil, fmt.Errorf("failed to unmarshal user.created event: %w", err)
 		}
 		return event, nil
 	default:
